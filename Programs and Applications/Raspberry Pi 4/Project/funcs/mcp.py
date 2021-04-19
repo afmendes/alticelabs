@@ -43,7 +43,7 @@ def start_mcp(cloud: Cloud, flag_debug=False, flag_print=False,
 
     while True:
         # MP0: Used for back FSR sensors for back positions
-        if not mcp0_queue.isEmpty():
+        if not mcp0_queue.is_empty():
             if flag_debug:
                 print("Getting MCP0 data")
             data = mcp0_queue.dequeue()
@@ -91,7 +91,7 @@ def start_mcp(cloud: Cloud, flag_debug=False, flag_print=False,
                 'file.write(data="MCP0: " + str(data))'
 
         # MP1: Used for seat optic sensors and some ambient sensors
-        if not mcp1_queue.isEmpty():
+        if not mcp1_queue.is_empty():
             if flag_debug:
                 print("Getting MCP1 data")
             data = mcp1_queue.dequeue()

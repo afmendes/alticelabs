@@ -9,7 +9,6 @@ def refresh_token(func):
             self.update_token()
         res = func(self, *args, **kwargs)
         return res
-
     return wrapper
 
 

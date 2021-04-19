@@ -1,28 +1,17 @@
 class Queue(object):
+    """FIFO Logic"""
     def __init__(self):
-        self.item = []
+        self.__item = []
 
     def enqueue(self, add):
-        self.item.insert(0, add)
+        self.__item.insert(0, add)
         return True
 
-    def size(self):
-        return len(self.item)
-
-    def isEmpty(self):
-        if self.size() == 0:
-            return True
-        else:
-            return False
-
     def dequeue(self):
-        if self.isEmpty():
-            return None
-        else:
-            return self.item.pop(0)
+        if not self.is_empty():
+            return self.__item.pop()
 
-    def clear(self):
-        self.item = []
-
-    def getData(self):
-        return self.item
+    def is_empty(self):
+        if self.__item:
+            return True
+        return False

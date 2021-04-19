@@ -70,16 +70,16 @@ def start_seat(cloud: Cloud, flag_debug, flag_print, flag_file, flag_cloud, file
         fr_t.start()
 
         while True:
-            if not bl_queue.isEmpty():
+            if not bl_queue.is_empty():
                 bl_arr.append(bl_queue.dequeue())
 
-            if not br_queue.isEmpty():
+            if not br_queue.is_empty():
                 br_arr.append(br_queue.dequeue())
 
-            if not fl_queue.isEmpty():
+            if not fl_queue.is_empty():
                 fl_arr.append(fl_queue.dequeue())
 
-            if not fr_queue.isEmpty():
+            if not fr_queue.is_empty():
                 fr_arr.append(fr_queue.dequeue())
         
             if len(bl_arr) >= max_samples or len(br_arr) >= max_samples \
