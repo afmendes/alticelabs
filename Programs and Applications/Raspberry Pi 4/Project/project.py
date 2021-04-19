@@ -1,6 +1,6 @@
-from funcs.ergonomics import __back_initialize
+from funcs.ergonomics import start_ergonomics
 
-__back_initialize()
+start_ergonomics()
 
 # Initialize cloud
 

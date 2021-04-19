@@ -1,54 +1,85 @@
 from threading import Thread
+from time import sleep
+from numpy import mean
+
+from classes.SeatBlock import SeatBlock
+from classes.BackBlock import BackBlock
+from classes.File import File
 
 
-def start_ergonomics(
-        flag_debug=False, flag_print=False, flag_cloud=True, flag_file=False,
-        seat_sensor="SO"):
+def start_ergonomics(seat_sensor="OPTIC"):
 
     # Initialize Back Data Sensors
-    __seat_initialize()
-    # TODO: implement it bitch
+    seat_block = _seat_initialize(seat_sensor)
 
     # Initialize Seat Data Sensors
-    __back_initialize()
-    # TODO: implement it bitch
+    back_block = _back_initialize()
 
     # Initialize coprocessor
-    __coprocessor()
-    # TODO: implement it bitch
-    pass
+    _coprocessor(seat_block, back_block, seat_sensor)
 
 
 # -------------------- Seat --------------------
 
-def __seat_initialize():
-    # TODO: implement it bitch
-    pass
+def _seat_initialize(seat_sensor: str):
+    return SeatBlock(seat_sensor)
 
 
-def __seat_get_data():
-    # TODO: implement it bitch
-    pass
+def _seat_get_data(seat_block: SeatBlock):
+    return seat_block.get_data()
 
 
 # -------------------- Back --------------------
 
-def __back_initialize():
-    print("You lied bitch")
-    # TODO: implement it bitch
-    pass
+def _back_initialize():
+    return BackBlock()
 
 
-def __back_get_data():
-    # TODO: implement it bitch
-    pass
+def _back_get_data(back_block: BackBlock):
+    return back_block.get_data()
 
 
 # ---------------- Coprocessor -----------------
 
+def _coprocessor(seat_block: SeatBlock, back_block: BackBlock, seat_sensor: str):
+    n_values = 10
 
-def __coprocessor(
-        flag_debug=False, flag_print=False, flag_cloud=True, flag_file=False,
-        seat_sensor="SO"):
-    # TODO: implement it bitch
-    pass
+    while not seat_block.is_ready() and not back_block.is_ready():
+        sleep(0.5)
+
+    try:
+        while True:
+            values = []
+            for i in range(n_values):
+                back_data = _back_get_data(back_block)
+                seat_data = _seat_get_data(seat_block)
+                values.append((back_data, seat_data))
+
+            back_data_mean = [
+                mean([x[0][0] for x in values]),
+                mean([x[0][1] for x in values]),
+                mean([x[0][2] for x in values]),
+                mean([x[0][3] for x in values]),
+            ]
+            seat_data_mean = [
+                mean([x[1][0] for x in values]),
+                mean([x[1][1] for x in values]),
+                mean([x[1][2] for x in values]),
+                mean([x[1][3] for x in values]),
+            ]
+            _send_data(back_data_mean, seat_data_mean)
+    except Exception as e:
+        print(e)
+        start_ergonomics(seat_sensor)
+
+
+def _send_data(back_data_mean: list, seat_data_mean: list):
+    flag_cloud = True
+    flag_file = False
+    if flag_cloud:
+        pass
+
+    if flag_file:
+        file = File("output/Ergonomic/test1.csv")
+        file.write("Back_data_mean: {}, Seat_data_mean: {}".format(back_data_mean, seat_data_mean))
+        pass
