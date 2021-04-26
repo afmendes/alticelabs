@@ -9,6 +9,7 @@ class BackBlock:
     def __init__(self):
         self.__ready = False
         self.__object = False
+        self.__init_mcp()
 
     def is_ready(self):
         return self.__ready

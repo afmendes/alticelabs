@@ -70,8 +70,8 @@ class SeatBlock:
             values = []
             for obj in self.__objects():
                 values.append(obj.get_weight(5))
-                values.power_down()
-                values.power_up()
+                obj.power_down()
+                obj.power_up()
             return values
         elif self.__type == 1 and self.__objects:
             pin0 = AnalogIn(self.__objects, MCP.P0)
