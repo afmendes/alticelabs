@@ -19,3 +19,4 @@ with open("message_1.csv", "w", encoding="utf8") as file:
             file.write(string1 + "\n" + string2 + "\n" +string3 + "\n\n\n")
         except:
             pass
+

@@ -44,6 +44,7 @@ def main():
     if flag_debug:
         print("Initializing cloud..")
     cloud = Cloud(rasp_id, rasp_secret)
+    print(cloud.get_access_token())
 
     # --------------- Threads ---------------
     if flag_hx711:

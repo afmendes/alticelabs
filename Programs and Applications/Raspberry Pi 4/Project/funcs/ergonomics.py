@@ -1,13 +1,13 @@
-from threading import Thread
 from time import sleep
 from numpy import mean
 
-from classes.SeatBlock import SeatBlock
-from classes.BackBlock import BackBlock
+
+from classes.Ergonomics import *
 from classes.File import File
+from classes.Cloud import Cloud
 
 
-def start_ergonomics(seat_sensor="OPTIC"):
+def start_ergonomics(cloud: Cloud, seat_sensor="OPTIC"):
 
     # Initialize Back Data Sensors
     seat_block = _seat_initialize(seat_sensor)
@@ -16,7 +16,7 @@ def start_ergonomics(seat_sensor="OPTIC"):
     back_block = _back_initialize()
 
     # Initialize coprocessor
-    _coprocessor(seat_block, back_block, seat_sensor)
+    _coprocessor(cloud, seat_block, back_block, seat_sensor)
 
 
 # -------------------- Seat --------------------
@@ -41,7 +41,7 @@ def _back_get_data(back_block: BackBlock):
 
 # ---------------- Coprocessor -----------------
 
-def _coprocessor(seat_block: SeatBlock, back_block: BackBlock, seat_sensor: str):
+def _coprocessor(cloud: Cloud, seat_block: SeatBlock, back_block: BackBlock, seat_sensor: str):
     n_values = 10
 
     while not seat_block.is_ready() and not back_block.is_ready():
@@ -70,7 +70,7 @@ def _coprocessor(seat_block: SeatBlock, back_block: BackBlock, seat_sensor: str)
             _send_data(back_data_mean, seat_data_mean)
     except Exception as e:
         print(e)
-        start_ergonomics(seat_sensor)
+        start_ergonomics(cloud, seat_sensor)
 
 
 def _send_data(back_data_mean: list, seat_data_mean: list):

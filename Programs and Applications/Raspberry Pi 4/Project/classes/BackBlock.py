@@ -18,6 +18,7 @@ class BackBlock:
         spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)
         cs = digitalio.DigitalInOut(board.D5)
         self.__object = MCP.MCP3008(spi, cs)
+        self.__ready = True
 
     def get_data(self):
         pin0 = AnalogIn(self.__object, MCP.P0)
