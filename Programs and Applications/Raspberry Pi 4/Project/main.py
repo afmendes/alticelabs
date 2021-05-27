@@ -12,6 +12,9 @@ from classes.Cloud import Cloud
 
 
 def main():
+    '''rasp_id = "6f96a294-2906-4c63-a13f-aeda7929f498"
+    rasp_secret = "65s531g4q62eg94hqm7utr06o80h7vtumu6efsmgdfqsk9gaphir"'''
+
     rasp_id = "6f96a294-2906-4c63-a13f-aeda7929f498"
     rasp_secret = "65s531g4q62eg94hqm7utr06o80h7vtumu6efsmgdfqsk9gaphir"
 

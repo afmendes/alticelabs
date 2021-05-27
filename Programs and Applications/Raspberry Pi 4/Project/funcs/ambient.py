@@ -1,8 +1,10 @@
 from time import sleep, time
+from datetime import datetime
 
 from classes.File import File
 from classes.Cloud import Cloud
 from classes.Ambient import *
+from classes.Firebase import Firebase
 
 
 def start_ambient(cloud: Cloud):
@@ -17,7 +19,7 @@ def start_ambient(cloud: Cloud):
     accel = _accelerometer_initialize()
 
     # Initialize coprocessor
-    _coprocessor(dht, mcp, accel)
+    _coprocessor(cloud, dht, mcp, accel)
 
 
 # -------------------- DHT11 --------------------
@@ -64,17 +66,23 @@ def _coprocessor(cloud: Cloud, dht: AmbientDHT11, mcp: AmbientMCP3008, accel: Am
             while (time() - start_time) < 5:
                 sleep(0.1)
 
-            _send_data(dht_data, mcp_data, accel_data)
+            _send_data(cloud, dht_data, mcp_data, accel_data)
 
     except Exception as e:
         print(e)
         start_ambient(cloud)
 
-def _send_data(dht_data, mcp_data, accel_data):
+def _send_data(cloud: Firebase, dht_data, mcp_data, accel_data):
     flag_cloud = True
     flag_file = False
+    date = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
     if flag_cloud:
+        # DHT
+        temperature = dht_data[0]
+        humidity = dht_data[2]
+
+        cloud.push_dht_data(temperature, humidity, date)
         pass
 
     if flag_file:
