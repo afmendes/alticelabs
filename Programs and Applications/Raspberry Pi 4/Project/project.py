@@ -3,6 +3,7 @@ from classes.Firebase import Firebase
 # from funcs.ergonomics import start_ergonomics
 
 # Initialize cloud
+firebase = Firebase()
 
 # Initialize Ergonomics
 """start_ergonomics()"""
@@ -10,5 +11,5 @@ from classes.Firebase import Firebase
 # Initialize Ambient
 
 # Celebrate
-firebase = Firebase()
-firebase.push_ergonomics_position_data(2, "something")
+
+firebase.push_ergonomics_position_data(3, "something")

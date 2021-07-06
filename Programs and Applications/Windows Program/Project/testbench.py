@@ -33,11 +33,11 @@ def testbench():
         h = int(hs/4)
         custom_root.geometry('%dx%d+%d+%d' % (w, h, ws - w - 10, hs - h - 100))
 
-        image1 = Image.open("vect1.png")
+        image1 = Image.open("images/vect1.png")
         image1 = image1.resize((int(w/2 - 20), int(h - 60)), Image.ANTIALIAS)
         image1canvas = ImageTk.PhotoImage(image1, master=custom_root)
 
-        image2 = Image.open("vect2.png")
+        image2 = Image.open("images/vect2.png")
         image2 = image2.resize((int(w/2 - 20), int(h - 60)), Image.ANTIALIAS)
         image2canvas = ImageTk.PhotoImage(image2, master=custom_root)
 
@@ -52,7 +52,7 @@ def testbench():
         label.pack(fill=BOTH, expand=True)
         label.configure(text="POSIÇAO INCORRETA")
 
-        # countdown(10)
+        countdown(10)
 
         # C:\Windows\Media\Windows Message Nudge.wav
         playsound("C:/Windows/Media/Windows Message Nudge.wav", block=False)

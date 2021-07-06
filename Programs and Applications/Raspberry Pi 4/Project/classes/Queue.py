@@ -1,6 +1,6 @@
 class Queue(object):
     """FIFO Logic"""
-    def __init__(self):
+    def __init__(self, max_size: int = 1000):
         self.__item = []
 
     def enqueue(self, add):

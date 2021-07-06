@@ -35,7 +35,6 @@ class BackBlock:
         return (pin0.value, pin1.value, pin2.value, pin3.value,
                 pin4.value, pin5.value, pin6.value, pin7.value)
 
-
 class SeatBlock:
     def __init__(self, type_str: str):
         self.__type = None
@@ -50,7 +49,7 @@ class SeatBlock:
             self.__init_hx()
 
         # Optic Fiber Sensor
-        elif type_str == "OPTICS":
+        elif type_str == "OPTIC":
             self.__type = 1
             self.__init_mcp()
         else:
@@ -58,34 +57,29 @@ class SeatBlock:
 
     def __init_hx(self):
         [back_left_dt, back_left_sck] = [8, 7]
-        [back_right_dt, back_right_sck] = [6, 13]
-        [front_left_dt, front_left_sck] = [23, 24]
+        [back_right_dt, back_right_sck] = [23, 24]
+        [front_left_dt, front_left_sck] = [6, 13]
         [front_right_dt, front_right_sck] = [27, 22]
-        calibration_unit = -1
 
         hx_bl = HX711(back_left_dt, back_left_sck)
         hx_bl.set_reading_format("MSB", "MSB")
-        hx_bl.set_reference_unit(calibration_unit)
-        hx_bl.reset()
-        hx_bl.tare()
+        hx_bl.set_reference_unit(1)
+        hx_bl.set_offset_B(0)
 
         hx_br = HX711(back_right_dt, back_right_sck)
         hx_br.set_reading_format("MSB", "MSB")
-        hx_br.set_reference_unit(calibration_unit)
-        hx_br.reset()
-        hx_br.tare()
+        hx_br.set_reference_unit(1)
+        hx_br.set_offset_B(0)
 
         hx_fl = HX711(front_left_dt, front_left_sck)
         hx_fl.set_reading_format("MSB", "MSB")
-        hx_fl.set_reference_unit(calibration_unit)
-        hx_fl.reset()
-        hx_fl.tare()
+        hx_fl.set_reference_unit(1)
+        hx_fl.set_offset_B(0)
 
         hx_fr = HX711(front_right_dt, front_right_sck)
         hx_fr.set_reading_format("MSB", "MSB")
-        hx_fr.set_reference_unit(calibration_unit)
-        hx_fr.reset()
-        hx_fr.tare()
+        hx_fr.set_reference_unit(1)
+        hx_fr.set_offset_B(0)
 
         self.__objects = [hx_bl, hx_br, hx_fl, hx_fr]
         self.__ready = True
@@ -98,10 +92,38 @@ class SeatBlock:
     def get_data(self):
         if self.__type == 0 and self.__objects:
             values = []
-            for obj in self.__objects():
-                values.append(obj.get_weight(5))
-                obj.power_down()
-                obj.power_up()
+            values_raw = []
+
+            count = 0
+            for obj in self.__objects:
+                count += 1
+                x = obj.get_weight()
+                if count == 1:
+                    values_raw.append(x)
+                    values.append(
+                        41.8693702120154 - 1.23799318169326e-13 * (
+                                    (1.37628314068967e23 * x + 8.62319892347033e29) ** (1 / 2))
+                    )
+                if count == 2:
+                    values_raw.append(x)
+                    values.append(
+                        96.8860931513110 - 2.92883195708374e-13 * (
+                                    (7.85815085221659e22 * x + 9.86736172185844e28) ** (1 / 2))
+                    )
+                if count == 3:
+                    values_raw.append(x)
+                    values.append(
+                        109.028756919783 - 2.00984001217932e-11 * (
+                                    (1.22288230549622e19 * x - 9.50698869729724e24) ** (1 / 2))
+                    )
+                if count == 4:
+                    values_raw.append(x)
+                    values.append(
+                        53.9002485907030 - 5.32256772313580e-13 * (
+                                    (7.39208825591957e21 * x - 8.19710069793331e27) ** (1 / 2))
+                    )
+                obj.reset()
+
             return values
         elif self.__type == 1 and self.__objects:
             pin0 = AnalogIn(self.__objects, MCP.P0)
@@ -116,3 +138,4 @@ class SeatBlock:
 
     def is_ready(self):
         return self.__ready
+
