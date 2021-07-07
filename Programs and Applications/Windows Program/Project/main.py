@@ -177,56 +177,62 @@ def window():
         custom_root.mainloop()
 
     def on_closing():
-        nonlocal flag_thread
         print("killing processes")
-        flag_thread = False
         root.destroy()
-        while update_thread.is_alive():
-            print(".")
-            sleep(1)
 
     def update():
-        ref = firebase.ref
-        env = ref.child("data").child("environment")
-        user = ref.child("data").child("user")
-        while True:
-            if not flag_thread:
-                print("stop")
-                return
+        user_ref = firebase.user_ref
+        user_ref.listen(user_ref_update)
+        env_ref = firebase.env_ref
+        env_ref.listen(env_ref_update)
 
-            print("Getting Data")
-            amb_temperature = env.child("temperature").get()
-            amb_humidity = env.child("humidity").get()
-            amb_noise = env.child("noise").get()
-            amb_brightness = env.child("brightness").get()
-            amb_co2 = env.child("co2").get()
+    def user_ref_update(Event):
+        path = Event.path
+        data = Event.data
+        if path == "/body_temperature":
+            user_data["Temperatura"].set(data)
+        elif path == "/bpm":
+            user_data["Frequência cardíaca"].set(data)
+        elif path == "/respiration_rate":
+            user_data["Frequência respiratória"].set(data)
+        elif path == "/position":
+            if data != 1:
+                custom_toast(data)
+        elif path == "/":
+            temp_data = data["body_temperature"]
+            bpm_data = data["bpm"]
+            rr_data = data["respiration_rate"]
+            pos_data = data["position"]
+            user_data["Temperatura"].set(temp_data)
+            user_data["Frequência cardíaca"].set(bpm_data)
+            user_data["Frequência respiratória"].set(rr_data)
+            if pos_data != 1:
+                custom_toast(data)
 
-            user_temperature = user.child("body_temperature").get()
-            user_bpm = user.child("bpm").get()
-            user_rr = user.child("respiration_rate").get()
-            user_pos = user.child("position").get()
-
-            if flag_thread:
-                print("Updating data")
-                ambient_data["Temperatura"].set(amb_temperature)
-                ambient_data["Humidade relativa"].set(amb_humidity)
-                ambient_data["Ruído"].set(amb_noise)
-                ambient_data["Luminosidade"].set(amb_brightness)
-                ambient_data["CO2"].set(amb_co2)
-
-                user_data["Temperatura"].set(user_temperature)
-                user_data["Frequência cardíaca"].set(user_bpm)
-                user_data["Frequência respiratória"].set(user_rr)
-
-                if user_pos != 1:
-                    custom_toast(user_pos)
-            else:
-                print("stop")
-                return
-
-            sleep(1)
-
-
+    def env_ref_update(Event):
+        path = Event.path
+        data = Event.data
+        if path == "/brightness":
+            ambient_data["Luminosidade"].set(data)
+        elif path == "/co2":
+            ambient_data["CO2"].set(data)
+        elif path == "/humidity":
+            ambient_data["Humidade relativa"].set(data)
+        elif path == "/noise":
+            ambient_data["Ruído"].set(data)
+        elif path == "/temperature":
+            ambient_data["Temperatura"].set(data)
+        elif path == "/":
+            env_brightness = data["brightness"]
+            env_co2 = data["co2"]
+            env_humidity = data["humidity"]
+            env_noise = data["noise"]
+            temperature = data["temperature"]
+            ambient_data["Luminosidade"].set(env_brightness)
+            ambient_data["CO2"].set(env_co2)
+            ambient_data["Humidade relativa"].set(env_humidity)
+            ambient_data["Ruído"].set(env_noise)
+            ambient_data["Temperatura"].set(temperature)
 
     def lum_button_func():
         # ac_control(root)
@@ -293,36 +299,7 @@ def window():
                         fg="white", font=("Times", 20), command=lum_button_func)
     lum_button.pack(side=RIGHT, padx=(5, 10))
 
-    """
-    # - Right Side
-    right_side = Frame(root, bg="white")
-    right_side.pack(side=RIGHT, expand=TRUE, fill=BOTH)
-
-    image_frame = Frame(right_side, bg="white")
-    image_frame.pack(expand=TRUE, fill=BOTH)
-
-    image1 = Image.open("vect1.png")
-    image1 = image1.resize((150, 500), Image.ANTIALIAS)
-    image1canvas = ImageTk.PhotoImage(image1, master=image_frame)
-
-    image2 = Image.open("vect2.png")
-    image2 = image2.resize((150, 500), Image.ANTIALIAS)
-    image2canvas = ImageTk.PhotoImage(image2, master=image_frame)
-
-    left_image = Label(image_frame, image=image1canvas, relief="solid")
-    left_image.pack(side=LEFT, padx=(10, 5))
-
-    right_image = Label(image_frame, image=image2canvas, relief="solid")
-    right_image.pack(side=RIGHT, padx=(5, 10))
-
-    text_frame = Frame(right_side, bg="white")
-    text_frame.pack(expand=FALSE, fill=BOTH)
-    """
-    """bottom_text = Label(text_frame, text="O JOÃO É GAY!", bg="#fbe5d6", font=("Times", 20))
-    bottom_text.pack(side=BOTTOM, pady=5)"""
-    flag_thread = True
-    update_thread = Thread(target=update)
-    update_thread.start()
+    update()
 
     root.protocol("WM_DELETE_WINDOW", on_closing)
     root.mainloop()

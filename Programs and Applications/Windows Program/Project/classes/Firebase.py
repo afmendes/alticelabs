@@ -16,6 +16,8 @@ class Firebase:
         # self.esp_ref = db.reference("/esp8266/")
         self.esp_ref = db.reference("/ESP/")
         self.ref = db.reference("/windows_pc/")
+        self.user_ref = db.reference("/windows_pc/data/user/")
+        self.env_ref = db.reference("/windows_pc/data/environment/")
 
     def lights_off(self):
         "commands/luminosity/on_off"

@@ -24,16 +24,11 @@ class BackBlock:
 
     def get_data(self):
         pin0 = AnalogIn(self.__object, MCP.P0)
-        pin1 = AnalogIn(self.__object, MCP.P1)
         pin2 = AnalogIn(self.__object, MCP.P2)
-        pin3 = AnalogIn(self.__object, MCP.P3)
         pin4 = AnalogIn(self.__object, MCP.P4)
-        pin5 = AnalogIn(self.__object, MCP.P5)
         pin6 = AnalogIn(self.__object, MCP.P6)
-        pin7 = AnalogIn(self.__object, MCP.P7)
 
-        return (pin0.value, pin1.value, pin2.value, pin3.value,
-                pin4.value, pin5.value, pin6.value, pin7.value)
+        return pin0.value, pin2.value, pin4.value, pin6.value
 
 class SeatBlock:
     def __init__(self, type_str: str):
