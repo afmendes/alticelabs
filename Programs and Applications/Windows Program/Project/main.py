@@ -1,8 +1,6 @@
 from tkinter import *
 from PIL import ImageTk, Image
 from playsound import playsound
-from threading import Thread
-from time import sleep
 
 from classes.Firebase import Firebase
 
@@ -14,17 +12,17 @@ class Line:
         if first:
             Label(master, text=text, font=("Times", 20), bg=bg, width=20, anchor=W).pack(
                 side=LEFT, fill=BOTH, expand=TRUE, padx=(2, 1), pady=(2, 1))
-            Label(master, textvariable=var, font=("Times", 20), bg=bg, width=5, anchor=W).pack(
+            Label(master, textvariable=var, font=("Times", 20), bg=bg, width=12, anchor=W).pack(
                 side=RIGHT, fill=BOTH, expand=TRUE, padx=(1, 2), pady=(2, 1))
         elif last:
             Label(master, text=text, font=("Times", 20), bg=bg, width=20, anchor=W).pack(
                 side=LEFT, fill=BOTH, expand=TRUE, padx=(2, 1), pady=(1, 2))
-            Label(master, textvariable=var, font=("Times", 20), bg=bg, width=5, anchor=W).pack(
+            Label(master, textvariable=var, font=("Times", 20), bg=bg, width=12, anchor=W).pack(
                 side=RIGHT, fill=BOTH, expand=TRUE, padx=(1, 2), pady=(1, 2))
         else:
             Label(master, text=text, font=("Times", 20), bg=bg, width=20, anchor=W).pack(
                 side=LEFT, fill=BOTH, expand=TRUE, padx=(2, 1), pady=1)
-            Label(master, textvariable=var, font=("Times", 20), bg=bg, width=5, anchor=W).pack(
+            Label(master, textvariable=var, font=("Times", 20), bg=bg, width=12, anchor=W).pack(
                 side=RIGHT, fill=BOTH, expand=TRUE, padx=(1, 2), pady=1)
 
 
@@ -54,22 +52,22 @@ class LightControl(Toplevel):
         self.top_frame = Frame(self)
         self.top_frame.pack()
 
-        self.auto_button = Button(self.top_frame, text="Automatic", font=("Times", 20), command=self.auto_button_func)
+        self.auto_button = Button(self.top_frame, text="Automatico", font=("Times", 20), command=self.auto_button_func)
         self.auto_button.pack()
 
         self.mid_frame = Frame(self)
         self.mid_frame.pack(fill=BOTH, expand=TRUE)
 
-        self.on_off_button = Button(self.mid_frame, text="ON/OFF", font=("Times", 20), command=self.on_off_button_func)
+        self.on_off_button = Button(self.mid_frame, text="Ligar/Desligar", font=("Times", 20), command=self.on_off_button_func)
         self.on_off_button.pack()
 
         self.bottom_frame = Frame(self)
         self.bottom_frame.pack(fill=BOTH, expand=TRUE)
 
-        self.brighter_button = Button(self.bottom_frame, text="Brighter", font=("Times", 20), command=self.brighter_button_func)
+        self.brighter_button = Button(self.bottom_frame, text="+ Claro", font=("Times", 20), command=self.brighter_button_func)
         self.brighter_button.pack(side=LEFT)
 
-        self.darker_button = Button(self.bottom_frame, text="Darker", font=("Times", 20), command=self.darker_button_func)
+        self.darker_button = Button(self.bottom_frame, text="+ Escuro", font=("Times", 20), command=self.darker_button_func)
         self.darker_button.pack(side=RIGHT)
 
         self.update_state()
@@ -130,6 +128,7 @@ def window():
             ["images/inclinado_esquerda.png", "images/inclinado_direito.png"],  # position 6
             ["images/perna_direita_cruzada.png", "images/inclinado_direito.png"],  # position 7
             ["images/perna_esquerda_cruzada.png", "images/inclinado_direito.png"],  # position 8
+            ["images/side_chair.png", "images/frontal_chair.png"],  # position 9
         ]
 
         # front view -> side view
@@ -207,7 +206,7 @@ def window():
             user_data["Frequência cardíaca"].set(bpm_data)
             user_data["Frequência respiratória"].set(rr_data)
             if pos_data != 1:
-                custom_toast(data)
+                custom_toast(pos_data)
 
     def env_ref_update(Event):
         path = Event.path
@@ -235,11 +234,10 @@ def window():
             ambient_data["Temperatura"].set(temperature)
 
     def lum_button_func():
-        # ac_control(root)
         LightControl(root)
 
     root = Tk()
-    root.geometry("450x600")
+    root.geometry("600x600")
     root.resizable(False, False)
     root.configure(bg="white")
 

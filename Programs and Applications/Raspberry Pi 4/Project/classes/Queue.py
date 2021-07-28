@@ -12,6 +12,6 @@ class Queue(object):
             return self.__item.pop()
 
     def is_empty(self):
-        if self.__item:
+        if not self.__item:
             return True
         return False

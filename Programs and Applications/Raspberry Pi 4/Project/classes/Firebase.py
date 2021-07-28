@@ -2,6 +2,8 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db
 
+from time import time
+
 
 class Firebase:
     def __init__(self):
@@ -15,6 +17,7 @@ class Firebase:
         self.ref = db.reference("/raspberry/")
         self.esp_ref = db.reference("/ESP/")
         self.pc_ref = db.reference("/windows_pc/")
+        self.last_check = time()
 
     def push_data(self, data_json):
         ref = self.ref.child("data")
@@ -41,11 +44,14 @@ class Firebase:
         ref.set(body_temp)
 
     def push_ergonomics_body_respiration(self, respiration, time):
+        if respiration < 11:
+            respiration = 0
         ref = self.ref.child("data").child("user").child("respiration_rate")
         ref.push({
             "value": respiration,
             "time": time
         })
+        print(respiration)
 
         ref = self.pc_ref.child("data").child("user").child("respiration_rate")
         ref.set(respiration)
@@ -56,6 +62,7 @@ class Firebase:
             "value": bpm,
             "time": time
         })
+        print(bpm)
 
         ref = self.pc_ref.child("data").child("user").child("bpm")
         ref.set(bpm)
@@ -76,26 +83,57 @@ class Firebase:
         # TODO: AC Control Block / Logic
         ...
 
-    def push_mcp_data(self, luminosity, co2, noise, time):
+    def push_mcp_data(self, brightness, co2, noise, time_):
         ref = self.ref.child("data").child("environment").child("mcp")
+        
+        ref_auto = self.esp_ref.child("Light").child("Auto")
+        ref_on = self.esp_ref.child("Light").child("OnOff")
+        ref_bright = self.esp_ref.child("Light").child("Bright")
+        
+        
+        if ref_auto.get() == "ON":
+            if ref_bright.get() == 0:
+                if not 25000 < brightness < 40000:
+                    if brightness < 25000:
+                        if ref_on.get() == "ON":
+                            ref_bright.set(1)
+                        elif ref_on.get() == "OFF":
+                            self.last_check = time()
+                            ref_on.set("ON")
+                    else:
+                        if time() - self.last_check >= 30:
+                            ref_on.set("OFF")
+                        else:
+                            ref_bright.set(-1)
+                else:
+                    self.last_check = time()
+                    
+        if brightness < 25000:
+            brightness_text = "Escuro"
+        elif brightness > 40000:
+            brightness_text = "Claro"
+        else:
+            brightness_text = "Normal"
+            
+        if noise < 10000:
+            noise_text = "Nenhum"
+        elif noise < 20000:
+            noise_text = "Baixo"
+        elif noise < 30000:
+            noise_text = "Médio"
+        else:
+            noise_text = "Alto"
+        
         ref.push({
-            "luminosity": luminosity,
+            "brightness": brightness,
             "co2": co2,
             "noise": noise,
-            "time": time
+            "time": time_
         })
-
-        ref = self.pc_ref.child("data").child("environment").child("luminosity")
-        ref.set(luminosity)
+        
+        ref = self.pc_ref.child("data").child("environment").child("brightness")
+        ref.set(brightness_text)
         ref = self.pc_ref.child("data").child("environment").child("co2")
         ref.set(co2)
         ref = self.pc_ref.child("data").child("environment").child("noise")
-        ref.set(noise)
-
-        ref = self.esp_ref.child("Light")
-        if ref.child("Auto") == "ON":
-            # TODO: Luminosity Control Logic
-            if luminosity < ...:
-                ref.child("Bright").set(1)
-            elif luminosity > ... and ref.child("OnOff") == "ON":
-                ref.child("Bright").set(-1)
+        ref.set(noise_text)

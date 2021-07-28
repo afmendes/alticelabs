@@ -8,7 +8,6 @@ from classes.Queue import Queue
 from classes.File import File
 from classes.Accelerometer import Respiration
 from classes.Firebase import Firebase
-from funcs.savgo import savitzky_golay
 
 
 def start_respiration(firebase):
@@ -123,8 +122,7 @@ def _respiration_filter(buffer: list):
         :param upper_freq:
         :return:
         """
-#         b, a = signal.iirfilter(N, [lower_freq/fs, upper_freq/fs], btype="band")
-        b, a = signal.iirfilter(N, [2 * np.pi * lower_freq, 2 * np.pi * upper_freq], fs=fs, btype="band")
+        b, a = signal.iirfilter(N, [0.1/fs, 0.6/fs], fs=fs, btype="band")
         output_data = signal.filtfilt(b, a, input_data)
         return output_data
 
@@ -136,10 +134,8 @@ def _respiration_filter(buffer: list):
 
     def local_maxima_count(data):
         a = np.array(data)
-#         a = savitzky_golay(a0,51,3)
-        #maximas = signal.argrelextrema(a, np.greater)
-        #maximas = np.r_[True, a[1:] < a[:-1]] & np.r_[a[:-1] < a[1:], True]
-        maximas, properties = signal.find_peaks(a , distance = 100, height = 2.1)
+        maximas = signal.argrelextrema(a, np.greater)
+        print( "maximas: " + str(maximas))
         return len(maximas)
 
     data = [x[0] for x in buffer]
@@ -155,30 +151,28 @@ def _respiration_filter(buffer: list):
         prev_value = value
 
     Fs = sum(frequencies)/len(frequencies)
+    print("fs: " + str(Fs))
     
     # Find outliers in data and remove them
     outliers = find_outliers(data)
     for index, val in enumerate(outliers):
         if val is True:
             data[index] = np.nan
-    print(data)
+
     # Fill missing values in data
     data, first_number_index, last_number_index = fill_missing(data)
     date = date[first_number_index:last_number_index]
-    print(data)
+
     # Filter data using an iir filter of 5th order
     data = filter_band_pass_iir(data, Fs, 5)
-    print(data.tolist())
-    count = local_maxima_count(data)
-    print("len" + str(len(data)))
-    print("c. " + str(count))
-    print(type(data))
+    print(data)
     data = smooth_data(data, date)
     print(data)
-    print(type(data))
+
     count = local_maxima_count(data)
-    print("c. " + str(count))
-    return count/(date[-1]-date[0])*Fs
+    print("count: ", count)
+
+    return count/(date[-1]-date[0])*60
 
 
 # ------------------ Coprocessor ----------------
@@ -214,14 +208,11 @@ def _send_data(firebase: Firebase, respiration_data):
     flag_cloud = True
     flag_file = False
     date = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-    try:
-        if flag_cloud:
 
-            # Respiration
-            firebase.push_ergonomics_body_respiration(round(respiration_data), date)
-    except:
-        ...
+    if flag_cloud:
+
+        # Respiration
+        firebase.push_ergonomics_body_respiration(round(respiration_data), date)
 
     if flag_file:
         ...
-
