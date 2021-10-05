@@ -1,96 +1,57 @@
 from threading import Thread
+from subprocess import check_output
+import os
+import signal
+from time import sleep
 
-"""from funcs.seat import start_seat
-from funcs.mcp import start_mcp
-from funcs.dht import start_dht
-from funcs.accelerometer import start_accel
-from funcs.optics import start_optics"""
+from classes.Firebase import Firebase
 
-# from classes.File import File
-from classes.Cloud import Cloud
-# from classes.Application import Application
+from funcs.ergonomics import start_ergonomics
+from funcs.ambient import start_ambient
+from funcs.heartbeat import start_heartbeat
+from funcs.respiration import start_respiration
 
+# This functions terminates a process created by DHT11
+# When active it doesn't allow a new DHT11 connection to be established
+def get_pid(name):
+    return check_output(["pidof",name])
 
-def main():
-    rasp_id = "6f96a294-2906-4c63-a13f-aeda7929f498"
-    rasp_secret = "65s531g4q62eg94hqm7utr06o80h7vtumu6efsmgdfqsk9gaphir"
-
-    # Flags
-    flag_debug = True
-    flag_print = False
-    flag_file = False
-    flag_cloud = False
-
-    # Components
-    flag_mcp = False
-    flag_hx711 = False
-    flag_optics = False
-    flag_dht = False
-    flag_accel = False
-
-    filepath_mcp = "output/MCP3008"
-    filepath_hx711 = "output/HX711"
-    filepath_optics = "output/OPTICS"
-    filepath_dht = "output/DHT11"
-    filepath_accel = "output/ACCELEROMETER"
-
-    filename_mcp = "output.csv"
-    filename_hx711 = "output.csv"
-    filename_optics = "output.csv"
-    filename_dht = "output.csv"
-    filename_accel = "output.csv"
-
-    # --------------- Cloud ---------------
-    if flag_debug:
-        print("Initializing cloud..")
-    cloud = Cloud(rasp_id, rasp_secret)
-
-    # --------------- Threads ---------------
-    if flag_hx711:
-        """seat_t = Thread(target=start_seat, args=(flag_debug, flag_print, flag_file, flag_cloud))
-        seat_t.start()"""
-
-    if flag_dht:
-        """dht_t = Thread(target=start_dht, args=(flag_debug, flag_print, flag_file, flag_cloud))
-        dht_t.start()"""
-
-    if flag_mcp:
-        """mcp_t = Thread(target=start_mcp, args=(flag_debug, flag_print, flag_file, flag_cloud))
-        mcp_t.start()"""
-
-    if flag_optics:
-        """optics_t = Thread(target=start_optics, args=(flag_debug, flag_print, flag_file, flag_cloud))
-        optics_t.start()"""
-
-    if flag_accel:
-        """accel_t = Thread(target=start_accel, args=(flag_debug, flag_print, flag_file, flag_cloud))
-        accel_t.start()"""
+try:
+    os.kill(int(get_pid("libgpiod_pulsein")),signal.SIGTERM)
+    print("libgpiod_pulsein process killed")
+    print("Waiting 3 seconds..")
+    sleep(3)
+    print("Program is starting..")
+except:
+    ...
 
 
+firebase = Firebase()
 
+# "HX711" or "OPTIC"
+seat_sensor = "OPTIC"
 
+if seat_sensor == "HX711":
+    # Initialize Ergonomics
+    thread_ergonomics = Thread(target=start_ergonomics, args=(firebase,"OPTIC",))
+    thread_ergonomics.start()
+    
+    # Initialize Ambient
+    thread_ambient = Thread(target=start_ambient, args=(firebase,))
+    thread_ambient.start()
+else:
+    # Initialize Ambient with all_in_one flag active to bypass MCP3008 readings errors caused by multiple threads
+    thread_ambient = Thread(target=start_ambient, args=(firebase, "True", ))
+    thread_ambient.start()
 
+# Initialize Heartbeat
+"""Not implemented"""
+# thread_heartbeat = Thread(target=start_heartbeat, args=(firebase,))
+# thread_heartbeat.start()
 
+# Initialize Respiration
+thread_respiration = Thread(target=start_respiration, args=(firebase,))
+thread_respiration.start()
 
-
-
-
-
-
-
-
-
-
-
-    """
-    file = File("test.csv", "output")
-    print(file.exists())
-    file.create("YES")
-    print(file.exists())
-    file.write("123")
-    file.write(321)
-    file.write_list((123,321,123,321))
-    file.write_list(("test","test2",123,321))
-    """
-
-main()
+# Celebrate
+" (ɔ◔‿◔)ɔ ♥ "

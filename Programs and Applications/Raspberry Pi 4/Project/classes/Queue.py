@@ -1,28 +1,21 @@
+# simple queue class with FIFO logic
 class Queue(object):
-    def __init__(self):
-        self.item = []
+    """FIFO Logic"""
+    def __init__(self, max_size: int = 1000):
+        self.__item = []
 
+    # adds a new item on the start of the queue
     def enqueue(self, add):
-        self.item.insert(0, add)
+        self.__item.insert(0, add)
         return True
 
-    def size(self):
-        return len(self.item)
-
-    def isEmpty(self):
-        if self.size() == 0:
-            return True
-        else:
-            return False
-
+    # removes the last items of the queue
     def dequeue(self):
-        if self.isEmpty():
-            return None
-        else:
-            return self.item.pop(0)
+        if not self.is_empty():
+            return self.__item.pop()
 
-    def clear(self):
-        self.item = []
-
-    def getData(self):
-        return self.item
+    # checks if the queue is empty and return True if it is, else returns False
+    def is_empty(self):
+        if not self.__item:
+            return True
+        return False
