@@ -1,6 +1,6 @@
 from tkinter import *
 from PIL import ImageTk, Image
-from playsound import playsound
+# from playsound import playsound
 
 from classes.Firebase import Firebase
 
@@ -8,7 +8,10 @@ firebase = Firebase()
 
 
 class Line:
+    """Class used to create the lines on the tables"""
+
     def __init__(self, master, text, var, bg, first=False, last=False):
+        """if conditions used just to beautify the table with the correct border widths"""
         if first:
             Label(master, text=text, font=("Times", 20), bg=bg, width=20, anchor=W).pack(
                 side=LEFT, fill=BOTH, expand=TRUE, padx=(2, 1), pady=(2, 1))
@@ -27,6 +30,8 @@ class Line:
 
 
 class Table:
+    """class used to create the tables displayed on the app"""
+
     def __init__(self, master, data: dict, bg, bg2):
         size = len(data.values())
         count = 0
@@ -43,6 +48,8 @@ class Table:
 
 
 class LightControl(Toplevel):
+    """Light control with a small and simple interface"""
+
     def __init__(self, master, **kw):
         super().__init__(master, **kw)
 
@@ -52,42 +59,54 @@ class LightControl(Toplevel):
         self.top_frame = Frame(self)
         self.top_frame.pack()
 
+        # Automatic toggle button
         self.auto_button = Button(self.top_frame, text="Automatico", font=("Times", 20), command=self.auto_button_func)
         self.auto_button.pack()
 
         self.mid_frame = Frame(self)
         self.mid_frame.pack(fill=BOTH, expand=TRUE)
 
-        self.on_off_button = Button(self.mid_frame, text="Ligar/Desligar", font=("Times", 20), command=self.on_off_button_func)
+        # On/Off toggle button
+        self.on_off_button = Button(self.mid_frame, text="Ligar/Desligar", font=("Times", 20),
+                                    command=self.on_off_button_func)
         self.on_off_button.pack()
 
         self.bottom_frame = Frame(self)
         self.bottom_frame.pack(fill=BOTH, expand=TRUE)
 
-        self.brighter_button = Button(self.bottom_frame, text="+ Claro", font=("Times", 20), command=self.brighter_button_func)
+        # Button to up the brightness
+        self.brighter_button = Button(self.bottom_frame, text="+ Claro", font=("Times", 20),
+                                      command=self.brighter_button_func)
         self.brighter_button.pack(side=LEFT)
 
-        self.darker_button = Button(self.bottom_frame, text="+ Escuro", font=("Times", 20), command=self.darker_button_func)
+        # Button to lower the brightness
+        self.darker_button = Button(self.bottom_frame, text="+ Escuro", font=("Times", 20),
+                                    command=self.darker_button_func)
         self.darker_button.pack(side=RIGHT)
 
         self.update_state()
 
+    # Automatic toggle button function
     def auto_button_func(self):
         firebase.lights_auto_toggle()
         self.update_state()
 
+    # On/Off toggle button function
     def on_off_button_func(self):
         firebase.lights_toggle()
         self.update_state()
 
+    # Button to up the brightness function
     def brighter_button_func(self):
         firebase.lights_brighter()
         self.update_state()
 
+    # Button to lower the brightness function
     def darker_button_func(self):
         firebase.lights_darker()
         self.update_state()
 
+    # Function to update the buttons state with firebase
     def update_state(self):
         self.auto_state = firebase.lights_auto_state()
         if self.auto_state == "ON":
@@ -110,6 +129,7 @@ class LightControl(Toplevel):
                 self.on_off_button.configure(bg="red")
 
 
+# Function to rearrange an array of strings into an array of StringVars to use with tkinter
 def arrange_data(data: dict):
     for x, i in data.items():
         if type(i) == str:
@@ -117,8 +137,11 @@ def arrange_data(data: dict):
             data[x].set(i)
 
 
+# Main function
 def window():
+    # Custom window notifier (pop-up) with sound
     def custom_toast(pos: int = 1):
+        # All paths of the images used for position detection
         image_paths = [
             ["images/sentado_direito.png", "images/inclinado_direito.png"],  # position 1
             ["images/sentado_direito.png", "images/inclinado_frente.png"],  # position 2
@@ -134,57 +157,65 @@ def window():
         # front view -> side view
         position_image1, position_image2 = image_paths[pos - 1]
 
+        # Timer used to close the window pop-up
         def countdown(time):
             if time == -1:
                 custom_root.destroy()
             else:
                 custom_root.after(1000, countdown, time - 1)
 
+        # Initialization of the interface
         custom_root = Tk()
-        custom_root.title("Alerta!")
+        custom_root.title("Alerta!")  # window title
         # get screen width and height
         ws = root.winfo_screenwidth()  # width of the screen
         hs = root.winfo_screenheight()  # height of the screen
-        w = int(ws/5)
-        h = int(hs/4)
+        w = int(ws / 5)
+        h = int(hs / 4)
+
+        # place the pop-up on the bottom right of the screen
         custom_root.geometry('%dx%d+%d+%d' % (w, h, ws - w - 10, hs - h - 100))
 
+        # Left image
         image1 = Image.open(position_image1)
-        image1 = image1.resize((int(w/2 - 20), int(h - 60)), Image.ANTIALIAS)
+        image1 = image1.resize((int(w / 2 - 20), int(h - 60)), Image.ANTIALIAS)
         image1canvas = ImageTk.PhotoImage(image1, master=custom_root)
 
+        # Right image
         image2 = Image.open(position_image2)
-        image2 = image2.resize((int(w/2 - 20), int(h - 60)), Image.ANTIALIAS)
+        image2 = image2.resize((int(w / 2 - 20), int(h - 60)), Image.ANTIALIAS)
         image2canvas = ImageTk.PhotoImage(image2, master=custom_root)
 
-        canvas = Canvas(custom_root, width=int(w), height=int(h-50))
+        # Canvas to place the images
+        canvas = Canvas(custom_root, width=int(w), height=int(h - 50))
         canvas.pack(fill=BOTH, expand=True)
 
         canvas.create_image(10, 10, anchor="nw", image=image1canvas)
-        canvas.create_image(int(w-10), 10, anchor="ne", image=image2canvas)
+        canvas.create_image(int(w - 10), 10, anchor="ne", image=image2canvas)
 
+        # Small text that appears under the images
         label = Label(custom_root, width=30)
         label.configure(bg="pink")
         label.pack(fill=BOTH, expand=True)
         label.configure(text="POSIÇAO INCORRETA")
 
+        # 5 seconds timer to close the pop-up
         countdown(5)
 
         # C:\Windows\Media\Windows Message Nudge.wav
-        playsound("C:/Windows/Media/Windows Message Nudge.wav", block=False)
+        # playsound("C:/Windows/Media/Windows Message Nudge.wav", block=False)
 
+        # Start the window loop
         custom_root.mainloop()
 
-    def on_closing():
-        print("killing processes")
-        root.destroy()
-
+    # Initialize the function handlers to update the table data in realtime
     def update():
         user_ref = firebase.user_ref
         user_ref.listen(user_ref_update)
         env_ref = firebase.env_ref
         env_ref.listen(env_ref_update)
 
+    # Data handler function for user data
     def user_ref_update(Event):
         path = Event.path
         data = Event.data
@@ -208,6 +239,7 @@ def window():
             if pos_data != 1:
                 custom_toast(pos_data)
 
+    # Data handler function for environment data
     def env_ref_update(Event):
         path = Event.path
         data = Event.data
@@ -233,6 +265,7 @@ def window():
             ambient_data["Ruído"].set(env_noise)
             ambient_data["Temperatura"].set(temperature)
 
+    # Luminosity button function
     def lum_button_func():
         LightControl(root)
 
@@ -252,6 +285,7 @@ def window():
     ambient_text_label = Label(ambient_text_frame, text=text, font=("Times", 20), fg="#0070c0", bg="#d9d9d9")
     ambient_text_label.pack(expand=TRUE, fill=BOTH)
 
+    # Array with strings of ambient data
     ambient_data = {
         "Temperatura": "xx",
         "Humidade relativa": "xx",
@@ -273,6 +307,7 @@ def window():
     user_text_label = Label(user_text_frame, text=text, font=("Times", 20), fg="#c00000", bg="#d9d9d9")
     user_text_label.pack(expand=TRUE, fill=BOTH)
 
+    # Array with strings of user data
     user_data = {
         "Temperatura": "xx",
         "Frequência cardíaca": "xx",
@@ -299,7 +334,6 @@ def window():
 
     update()
 
-    root.protocol("WM_DELETE_WINDOW", on_closing)
     root.mainloop()
 
 

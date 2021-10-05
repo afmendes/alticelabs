@@ -190,6 +190,7 @@ def _coprocessor(firebase: Firebase, respiration: Respiration):
     queue = Queue()
     buffer = []
 
+    # Initializes a thread to retrieve data from respiration accelerometer
     def read_data_thread():
         while True:
             queue.enqueue(_respiration_get_data(respiration))
@@ -200,8 +201,10 @@ def _coprocessor(firebase: Firebase, respiration: Respiration):
 
     start_time = time()
     while True:
+        # Infinite loop to wait for data to be ready from the previous thread
         if not queue.is_empty():
             buffer.append(queue.dequeue())
+        # Every 60 seconds process data processed from the thread
         if (time() - start_time) > 60:
             respiration_data = _respiration_filter(buffer)
             sleep(1)
@@ -209,19 +212,20 @@ def _coprocessor(firebase: Firebase, respiration: Respiration):
             _send_data(firebase, respiration_data)
             start_time = time()
 
-
+# function that sends data to the firebase with the time from when the data was sent
 def _send_data(firebase: Firebase, respiration_data):
     flag_cloud = True
     flag_file = False
     date = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
     try:
         if flag_cloud:
-
-            # Respiration
+            # Pushes respiration frequency data to Firebase
             firebase.push_ergonomics_body_respiration(round(respiration_data), date)
     except:
+        """Not implemented"""
         ...
 
     if flag_file:
+        """Not implemented"""
         ...
 

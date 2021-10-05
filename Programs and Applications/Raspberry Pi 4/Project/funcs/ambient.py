@@ -59,10 +59,10 @@ def _back_get_data(back_block: BackBlock):
 # ------------------ Coprocessor ----------------
 def _coprocessor(firebase: Firebase, dht: AmbientDHT11,
                  mcp: AmbientMCP3008, mcp2: BackBlock, all_in_one: bool):
-    
-    n_values = 5
-    values = []
-    counter = 0
+
+    n_values = 5  # n values used for average
+    values = []  # values array for averaging
+    counter = 0  # counter used of printing and debugging
 
     while not dht.is_ready() and not mcp.is_ready():
         sleep(0.5)
@@ -71,12 +71,18 @@ def _coprocessor(firebase: Firebase, dht: AmbientDHT11,
         while True:
             start_time = time()
 
+            # retrieve data from dht11
             dht_data = _dth11_get_data(dht)
 #             print("dht: " + str(dht_data))
+
+            # retrieve data from mcp3008
             mcp_data = _mcp3008_get_data(mcp)
 #             print("mcp: " + str(mcp_data))
+
+            # if all_in_one is active, it also retrieves the data from BackBlock and SeatBlock with optics
             if all_in_one:
                 counter += 1
+                # retrieve data from BackBlock
                 back_data = _back_get_data(mcp2)
 #                 print("back: " + str(back_data))
                 values.append([back_data, mcp_data[4:8]])
@@ -89,12 +95,14 @@ def _coprocessor(firebase: Firebase, dht: AmbientDHT11,
 #             if
             if counter >= n_values:
                 counter = 0
+                # retrieves back data from x array
                 back_data = [
                     mean([x[0][0] for x in values]),
                     mean([x[0][1] for x in values]),
                     mean([x[0][2] for x in values]),
                     mean([x[0][3] for x in values]),
                 ]
+                # retrieves seat data from x array
                 seat_data = [
                     mean([x[1][2] for x in values]), # TD
                     mean([x[1][1] for x in values]), # TE
@@ -113,8 +121,10 @@ def _coprocessor(firebase: Firebase, dht: AmbientDHT11,
 
 def _send_data(firebase: Firebase, dht_data, mcp_data, values, all_in_one: bool):
     global count, prev_pos
-    flag_cloud = True
-    flag_file = True
+    flag_cloud = True  # cloud flag used to send data to Firebase
+    flag_file = False  # file flag used for debugging
+
+    # get current timestamp
     date = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
     try:
         if flag_cloud:
@@ -129,22 +139,25 @@ def _send_data(firebase: Firebase, dht_data, mcp_data, values, all_in_one: bool)
             luminosity, noise, co2_read, body_temperature = mcp_data[0:4]
             firebase.push_mcp_data(luminosity, co2_read, noise, date)
             firebase.push_ergonomics_body_temperature(body_temperature, date)
-            
+
+            # if all_in_one active, process ergonomics related data
             if all_in_one and values:
                 topo_dir, topo_esq, baixo_esq, baixo_dir = values[0]
                 tras_dir, tras_esq, frente_dir, frente_esq = values[1]
-                
-                back_sum = sum(values[0])
 
+                # sum of each block of data
+                back_sum = sum(values[0])
                 seat_sum = sum(values[1])
 
                 position = None
-                
+
+                # individual percentages of seat sensors
                 tras_dir_perc = tras_dir / seat_sum * 100
                 tras_esq_perc = tras_esq / seat_sum * 100
                 frente_dir_perc = frente_dir / seat_sum * 100
                 frente_esq_perc = frente_esq / seat_sum * 100
-                
+
+                # Logic used to determine position detected
                 if seat_sum < 15:
                     position = 9
                 else:
@@ -155,6 +168,7 @@ def _send_data(firebase: Firebase, dht_data, mcp_data, values, all_in_one: bool)
                         else:
                             position = 2
                     else:
+                        # individual percentages of backrest sensors
                         topo_dir_perc = topo_dir / back_sum * 100
                         topo_esq_perc = topo_esq / back_sum * 100
                         baixo_esq_perc = baixo_esq / back_sum * 100
@@ -204,6 +218,8 @@ def _send_data(firebase: Firebase, dht_data, mcp_data, values, all_in_one: bool)
                 
     except:
         ...
+
+    # if condition used for data debugging
     if flag_file:
         if all_in_one and values:
         

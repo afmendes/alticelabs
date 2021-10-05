@@ -95,9 +95,6 @@ def _heartbeat_filter(buffer: list):
             for i in range(index1+1, index2, 1):
                 data[i] = m_*i+b_
 
-
-
-
         first_number_index = find_first_number_index()
 
         last_number_index = find_last_number_index()
@@ -127,7 +124,8 @@ def _heartbeat_filter(buffer: list):
         b, a = signal.iirfilter(N, [0.7/fs, 10/fs], fs=fs, btype="band")
         output_data = signal.filtfilt(b, a, input_data)
         return output_data
-        
+
+    # Confidence function calculation
     def confidence(data, Fs):
 
         def condition_lower(f):
@@ -184,11 +182,11 @@ def _heartbeat_filter(buffer: list):
 
     # Filter data using an iir filter of 5th order
     data = filter_band_pass_iir(data, Fs, 5)
-    
-    if confidence(data,Fs) > 25:
+
+    """if confidence(data, Fs) > 25:
         return count/(date[-1]-date[0])*60
     else: 
-        return 0
+        return 0"""
 
 
 # ------------------ Coprocessor ----------------
@@ -200,6 +198,7 @@ def _coprocessor(firebase: Firebase, heartbeat: Heartbeat):
     queue = Queue()
     buffer = []
 
+    # Initializes a thread to retrieve data from heartbeat accelerometer
     def read_data_thread():
         while True:
             queue.enqueue(_heartbeat_get_data(heartbeat))
@@ -210,8 +209,11 @@ def _coprocessor(firebase: Firebase, heartbeat: Heartbeat):
 
     start_time = time()
     while True:
+        # Infinite loop to wait for data to be ready from the previous thread
         if not queue.is_empty():
             buffer.append(queue.dequeue())
+
+        # Every 10 seconds process data processed from the thread
         if (time() - start_time) > 10:
             heartbeat_data = _heartbeat_filter(buffer)
             sleep(1)
@@ -220,6 +222,7 @@ def _coprocessor(firebase: Firebase, heartbeat: Heartbeat):
             start_time = time()
 
 
+# function that sends data to the firebase with the time from when the data was sent
 def _send_data(firebase: Firebase, heartbeat_data):
     flag_cloud = True
     flag_file = False
@@ -227,10 +230,11 @@ def _send_data(firebase: Firebase, heartbeat_data):
 
     if flag_cloud:
 
-        # Respiration
+        # Pushes cardiac frequency data to Firebase
         firebase.push_ergonomics_body_bpm(round(heartbeat_data), date)
 
     if flag_file:
+        """Not implemented"""
         ...
 
 

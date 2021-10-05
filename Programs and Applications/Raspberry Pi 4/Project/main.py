@@ -10,7 +10,9 @@ from funcs.ergonomics import start_ergonomics
 from funcs.ambient import start_ambient
 from funcs.heartbeat import start_heartbeat
 from funcs.respiration import start_respiration
-    
+
+# This functions terminates a process created by DHT11
+# When active it doesn't allow a new DHT11 connection to be established
 def get_pid(name):
     return check_output(["pidof",name])
 
@@ -38,11 +40,12 @@ if seat_sensor == "HX711":
     thread_ambient = Thread(target=start_ambient, args=(firebase,))
     thread_ambient.start()
 else:
-    # Initialize Ambient
+    # Initialize Ambient with all_in_one flag active to bypass MCP3008 readings errors caused by multiple threads
     thread_ambient = Thread(target=start_ambient, args=(firebase, "True", ))
     thread_ambient.start()
 
 # Initialize Heartbeat
+"""Not implemented"""
 # thread_heartbeat = Thread(target=start_heartbeat, args=(firebase,))
 # thread_heartbeat.start()
 

@@ -5,6 +5,7 @@ from firebase_admin import db
 from time import time
 
 
+# Firebase class used to make contact with cloud service
 class Firebase:
     def __init__(self):
         # Fetch the service account key JSON file contents
@@ -19,10 +20,12 @@ class Firebase:
         self.pc_ref = db.reference("/windows_pc/")
         self.last_check = time()
 
+    # push data to cloud
     def push_data(self, data_json):
         ref = self.ref.child("data")
         ref.push(data_json)
 
+    # push ergonomics position data to cloud
     def push_ergonomics_position_data(self, pos, time):
         ref = self.ref.child("data").child("user").child("position")
         ref.push({
@@ -33,6 +36,7 @@ class Firebase:
         ref = self.pc_ref.child("data").child("user").child("position")
         ref.set(pos)
 
+    # push ergonomics body temperature data to cloud
     def push_ergonomics_body_temperature(self, body_temp, time):
         ref = self.ref.child("data").child("user").child("body_temperature")
         ref.push({
@@ -43,6 +47,7 @@ class Firebase:
         ref = self.pc_ref.child("data").child("user").child("body_temperature")
         ref.set(body_temp)
 
+    # push ergonomics body respiration data to cloud
     def push_ergonomics_body_respiration(self, respiration, time):
         if respiration < 11:
             respiration = 0
@@ -56,6 +61,7 @@ class Firebase:
         ref = self.pc_ref.child("data").child("user").child("respiration_rate")
         ref.set(respiration)
 
+    # push ergonomics body cardiac frequency data to cloud
     def push_ergonomics_body_bpm(self, bpm, time):
         ref = self.ref.child("data").child("user").child("bpm")
         ref.push({
@@ -67,6 +73,7 @@ class Firebase:
         ref = self.pc_ref.child("data").child("user").child("bpm")
         ref.set(bpm)
 
+    # push environment dht data to cloud
     def push_dht_data(self, temperature, humidity, time):
         ref = self.ref.child("data").child("environment").child("dht")
         ref.push({
@@ -83,6 +90,7 @@ class Firebase:
         # TODO: AC Control Block / Logic
         ...
 
+    # push environment mcp data to cloud
     def push_mcp_data(self, brightness, co2, noise, time_):
         ref = self.ref.child("data").child("environment").child("mcp")
         
@@ -90,7 +98,7 @@ class Firebase:
         ref_on = self.esp_ref.child("Light").child("OnOff")
         ref_bright = self.esp_ref.child("Light").child("Bright")
         
-        
+        # Controls light parameters with automatic is turned on
         if ref_auto.get() == "ON":
             if ref_bright.get() == 0:
                 if not 25000 < brightness < 40000:
@@ -107,14 +115,16 @@ class Firebase:
                             ref_bright.set(-1)
                 else:
                     self.last_check = time()
-                    
+
+        # Converts digital output to strings for the cloud
         if brightness < 25000:
             brightness_text = "Escuro"
         elif brightness > 40000:
             brightness_text = "Claro"
         else:
             brightness_text = "Normal"
-            
+
+        # Converts digital output to strings for the cloud
         if noise < 10000:
             noise_text = "Nenhum"
         elif noise < 20000:
@@ -123,14 +133,16 @@ class Firebase:
             noise_text = "Médio"
         else:
             noise_text = "Alto"
-        
+
+        # pushes data to cloud
         ref.push({
             "brightness": brightness,
             "co2": co2,
             "noise": noise,
             "time": time_
         })
-        
+
+        # sets data on cloud
         ref = self.pc_ref.child("data").child("environment").child("brightness")
         ref.set(brightness_text)
         ref = self.pc_ref.child("data").child("environment").child("co2")
